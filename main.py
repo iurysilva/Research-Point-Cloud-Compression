@@ -3,12 +3,29 @@ from pyntcloud import PyntCloud
 import copy
 import scipy.stats as stats
 import scipy.io as io
+import plotly
+import plotly.graph_objects as go
+import scipy
+
+global X, Y, Z
 
 def compare_matlab_array(array_object, array_name):
     print("Compare %s: "%(array_name),  (io.loadmat("arrays/"+array_name)[array_name] == array_object).all())
 
 def trunc(values, decs=0):
     return np.trunc(values*10**decs)/(10**decs)
+
+def plot_point_clout(xs, ys, zs):
+    marker_data = go.Scatter3d(
+    x=xs, 
+    y=ys, 
+    z=zs, 
+    marker=go.scatter3d.Marker(size=3), 
+    opacity=0.8, 
+    mode='markers'
+)
+    fig=go.Figure(data=marker_data)
+    plotly.offline.plot(fig)
 
 Pstat = np.ones((2, 3))
 Pstat[:, 0] = [-330, 180]
@@ -86,5 +103,26 @@ for i in range(initPC, 41):
 
     if jj==1:
         Inpthat = Inpt[SS, :]
-        
+        print("Rodando...?")
     break
+
+
+
+def func(data, A, B, C, D, E):
+    # unpacking the multi-dim. array column-wise, that's why the transpose
+    x, y = data
+
+    return A + (B*x) + (C*y) + (D*x**2) + (E*x*y)
+
+
+
+data = [X, Y, Z]
+
+
+# here a non-linear surface fit is made with scipy's curve_fit()
+fittedParameters, pcov = scipy.optimize.curve_fit(func, [X, Y], Z)
+plot_point_clout(X, Y, Z)
+print(fittedParameters, pcov)
+from string import ascii_uppercase
+for i, j in zip(fittedParameters, ascii_uppercase):
+    print(f"{j} = {i:.3f}")
