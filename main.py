@@ -6,8 +6,28 @@ import scipy.io as io
 import plotly
 import plotly.graph_objects as go
 import scipy
+from plotly.subplots import make_subplots
 
 global X, Y, Z
+
+def func(data, A, B, C, D, E):
+    # unpacking the multi-dim. array column-wise, that's why the transpose
+    x, y = data.T
+
+    return A + (B*x) + (C*y) + (D*x**2) + (E*x*y)
+
+def func_array(data, A, B, C, D, E):
+    # unpacking the multi-dim. array column-wise, that's why the transpose
+    result = np.zeros(shape=(data.shape[0]))
+    for row in range(0, data.shape[0]):
+        x, y = data[row][0]
+        result[row] = A + (B*x) + (C*y) + (D*x**2) + (E*x*y)
+    return result
+
+def print_fitted_params(fittedParameters):
+    from string import ascii_uppercase
+    for i, j in zip(fittedParameters, ascii_uppercase):
+        print(f"{j} = {i:.3f}")
 
 def compare_matlab_array(array_object, array_name):
     print("Compare %s: "%(array_name),  (io.loadmat("arrays/"+array_name)[array_name] == array_object).all())
@@ -15,16 +35,36 @@ def compare_matlab_array(array_object, array_name):
 def trunc(values, decs=0):
     return np.trunc(values*10**decs)/(10**decs)
 
-def plot_point_clout(xs, ys, zs):
-    marker_data = go.Scatter3d(
+def plot_point_cloud(xs, ys, zs, xhats, yhats, zhats):
+    trace1 = go.Scatter3d(
     x=xs, 
     y=ys, 
     z=zs, 
-    marker=go.scatter3d.Marker(size=3), 
+    marker=go.scatter3d.Marker(
+        size=3,
+        color='rgb(0,0,255)',  # set color to an array/list of desired values
+        #colorscale='Viridis',   # choose a colorscale
+        ), 
+    opacity=0.8, 
+    mode='markers'
+    )
+
+    trace2 = go.Scatter3d(
+    x=xhats, 
+    y=yhats, 
+    z=zhats, 
+    marker=go.scatter3d.Marker(
+        size=3,
+        color='rgb(255,0,0)',  # set color to an array/list of desired values
+        #colorscale='Viridis',   # choose a colorscale
+        ), 
     opacity=0.8, 
     mode='markers'
 )
-    fig=go.Figure(data=marker_data)
+
+    fig = make_subplots()
+    fig.add_trace(trace1)
+    fig.add_trace(trace2)
     plotly.offline.plot(fig)
 
 Pstat = np.ones((2, 3))
@@ -103,26 +143,19 @@ for i in range(initPC, 41):
 
     if jj==1:
         Inpthat = Inpt[SS, :]
-        print("Rodando...?")
+        print(Inpt)
+        fittedParameters, pcov = scipy.optimize.curve_fit(func,  Inpt, Z)
+        print(print_fitted_params(fittedParameters=fittedParameters))
+        Xhat = X[np.ravel(SS)]
+        Yhat = Y[np.ravel(SS)]
+        color = np.array(ptCloud2.points)[:, 3:6]
+    else:
+         fittedParameters, pcov = scipy.optimize.curve_fit(func, Inpt, Z)
+    Zhat = func_array(Inpthat, fittedParameters[0],  fittedParameters[1],  fittedParameters[2],  fittedParameters[3],  fittedParameters[4])
+    aux = [Xhat, Yhat, Zhat]
+    print(aux)
+    plot_point_cloud(X, Y, Z, Xhat, Yhat, Zhat)
     break
 
-
-
-def func(data, A, B, C, D, E):
-    # unpacking the multi-dim. array column-wise, that's why the transpose
-    x, y = data
-
-    return A + (B*x) + (C*y) + (D*x**2) + (E*x*y)
-
-
-
-data = [X, Y, Z]
-
-
 # here a non-linear surface fit is made with scipy's curve_fit()
-fittedParameters, pcov = scipy.optimize.curve_fit(func, [X, Y], Z)
-plot_point_clout(X, Y, Z)
-print(fittedParameters, pcov)
-from string import ascii_uppercase
-for i, j in zip(fittedParameters, ascii_uppercase):
-    print(f"{j} = {i:.3f}")
+# plot_point_cloud(X, Y, Z)
