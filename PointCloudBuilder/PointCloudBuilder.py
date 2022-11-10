@@ -32,8 +32,7 @@ class PointCloudBuilder:
         self.anim = 0
         self.ax1 = plt.axes(projection='3d')
 
-    def build_one_frame(self, frame):
-        self.scat3d.remove()
+    def build_one_frame(self, frame=False):
         point_cloud = PyntCloud.from_file(self.filename_prefix + str(self.iteration) + '.ply')
         point_cloud2 = copy.deepcopy(point_cloud)
 
@@ -62,7 +61,6 @@ class PointCloudBuilder:
         inpt = np.round(stats.zscore(np.column_stack([x, y])), decimals=4)
 
         # creating the numerical model for getting the sensors and displacements
-
         if self.jj == 0:
             self.inpt_hat = inpt[self.ss, :]
             fitted_parameters, p_cov = scipy.optimize.curve_fit(func, inpt, z)
@@ -86,14 +84,20 @@ class PointCloudBuilder:
         self.jj += 1
         self.iteration += 1
 
-        self.scat3d = self.ax1.scatter3D(self.x_hat, self.y_hat, z_hat, c=['k'])
-
+        self.scat3d.remove()
+        self.scat3d = self.ax1.scatter3D(self.x_hat, self.y_hat, z_hat, c="gray")
+        plt.savefig("plots/"+("img%d.jpg" % (self.iteration-40)))
         if self.iteration >= self.n_files:
             self.anim.event_source.stop()
         print("PC ", self.jj)
 
-    def run(self, animation_velocity=20):
+    def run(self, animation_velocity=12000):
         self.scat3d = self.ax1.scatter3D(0, 0, 0)
+        self.ax1.view_init(50, 270)
+        self.ax1.set_xlabel('X (mm)')
+        self.ax1.set_ylabel('Y (mm)')
+        self.ax1.set_zlabel('Z (mm)')
+        self.ax1.set_zlim3d(bottom=900, top=1250)
         print("Initializing with 3D animation")
         self.anim = FuncAnimation(plt.gcf(), self.build_one_frame, interval=animation_velocity, repeat=False)
         plt.show()
