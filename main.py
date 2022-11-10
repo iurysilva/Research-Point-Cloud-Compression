@@ -8,6 +8,7 @@ import plotly.graph_objects as go
 import scipy
 from plotly.subplots import make_subplots
 
+
 global X, Y, Z
 
 def func(data, A, B, C, D, E):
@@ -72,7 +73,7 @@ Pstat[:, 0] = [-330, 180]
 Pstat[:, 1] = [-280, 200]
 Pstat[:, 2] = [950, 1300]
 
-compare_matlab_array(Pstat, "Pstat")
+# compare_matlab_array(Pstat, "Pstat")
 
 Pstat2 = np.ones((2, 3))
 Pstat2[:, 0] = [-330, 180]
@@ -89,16 +90,22 @@ SS = np.random.randint(1, avgPC, (nAcc, 1))
 nFiles = 270
 initPC = 40
 
-jj = 1
+jj = 0
 ff = 1
 ff2 = 4
+
+Xhat = None
+Yhat = None
+displacement = None
+Inpthat = None
+Zhat_old = None
 
 Fs = 30
 
 filename = 'LAGRARIAN444_' + str(nAcc) + 'SENSORS_KDE_' + str(Fs) + 'fps'
 indices = 0
 ptCloud = 0
-for i in range(initPC, 41):
+for i in range(initPC, nFiles):
     ptCloud = PyntCloud.from_file(filename_prefix + str(i) + '.ply')
     ptCloud2 = copy.deepcopy(ptCloud)
     # Cropping
@@ -109,17 +116,17 @@ for i in range(initPC, 41):
               (location[:, 2] <= np.max(Pstat[:, 2])) & (location[:, 2] >= np.min(Pstat[:, 2]))
     matlab_indices = io.loadmat("arrays/indices")["indices"]
     matlab_indices = matlab_indices.reshape(1, matlab_indices.shape[0])[0]
-    print("Compare indices: ",(indices==matlab_indices).all())
+    # ("Compare indices: ",(indices==matlab_indices).all())
 
 
     indices = np.where(indices == 1)[0]
     matlab_indices_find = io.loadmat("arrays/indices_find")["indices"]
     matlab_indices_find = matlab_indices_find.reshape(1, matlab_indices_find.shape[0])[0]
-    print("Compare indices_find: ",(indices+1==matlab_indices_find).all())
+    # print("Compare indices_find: ",(indices+1==matlab_indices_find).all())
 
     ptCloud.apply_filter(indices)
-    print("Compare point clouds after filter: ", 
-    (np.array(ptCloud.points)[:, 0:3].astype("int") == io.loadmat("arrays/ptCloud_after_filter.mat")["ptCloud_after_filter"].astype("int")).all())
+    # print("Compare point clouds after filter: ",
+    # (np.array(ptCloud.points)[:, 0:3].astype("int") == io.loadmat("arrays/ptCloud_after_filter.mat")["ptCloud_after_filter"].astype("int")).all())
 
     # Cropping
     location = np.array(ptCloud2.points)[:, 0:3]
@@ -128,8 +135,8 @@ for i in range(initPC, 41):
               (location[:, 2] <= np.max(Pstat2[:, 2])) & (location[:, 2] >= np.min(Pstat2[:, 2]))
     indices = np.where(indices == 1)[0]
     ptCloud2.apply_filter(indices)
-    print("Compare point clouds 2 after filter: ", 
-    (np.array(ptCloud2.points)[:, 0:3].astype("int") == io.loadmat("arrays/ptCloud_after_filter2.mat")["ptCloud_after_filter2"].astype("int")).all())
+    # print("Compare point clouds 2 after filter: ",
+    # (np.array(ptCloud2.points)[:, 0:3].astype("int") == io.loadmat("arrays/ptCloud_after_filter2.mat")["ptCloud_after_filter2"].astype("int")).all())
 
     
     location = np.array(ptCloud2.points)[:, 0:3]
@@ -141,11 +148,9 @@ for i in range(initPC, 41):
 
     # creating the numerical model for getting the sensors and displacements
 
-    if jj==1:
+    if jj==0:
         Inpthat = Inpt[SS, :]
-        print(Inpt)
         fittedParameters, pcov = scipy.optimize.curve_fit(func,  Inpt, Z)
-        print(print_fitted_params(fittedParameters=fittedParameters))
         Xhat = X[np.ravel(SS)]
         Yhat = Y[np.ravel(SS)]
         color = np.array(ptCloud2.points)[:, 3:6]
@@ -153,9 +158,16 @@ for i in range(initPC, 41):
          fittedParameters, pcov = scipy.optimize.curve_fit(func, Inpt, Z)
     Zhat = func_array(Inpthat, fittedParameters[0],  fittedParameters[1],  fittedParameters[2],  fittedParameters[3],  fittedParameters[4])
     aux = [Xhat, Yhat, Zhat]
-    print(aux)
-    plot_point_cloud(X, Y, Z, Xhat, Yhat, Zhat)
-    break
 
-# here a non-linear surface fit is made with scipy's curve_fit()
-# plot_point_cloud(X, Y, Z)
+    if jj > 0:
+        displacement[jj] = np.array(aux) - Zhat_old
+    else:
+        displacement = np.zeros((nFiles - initPC, 3, np.array(aux).shape[1]))
+        displacement[jj] = np.zeros(np.array(aux).shape)
+    Zhat_old = aux
+
+    ff += 1
+    ff2 = ff2
+    jj += 1
+    # plot_point_cloud(X, Y, Z, Xhat, Yhat, Zhat)
+    print("PC ", jj)
