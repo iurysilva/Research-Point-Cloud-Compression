@@ -36,7 +36,7 @@ def compare_matlab_array(array_object, array_name):
 def trunc(values, decs=0):
     return np.trunc(values*10**decs)/(10**decs)
 
-def plot_point_cloud(xs, ys, zs, xhats, yhats, zhats):
+def plot_point_cloud(xs, ys, zs, xhats, yhats, zhats, fig):
     trace1 = go.Scatter3d(
     x=xs, 
     y=ys, 
@@ -61,9 +61,9 @@ def plot_point_cloud(xs, ys, zs, xhats, yhats, zhats):
         ), 
     opacity=0.8, 
     mode='markers'
-)
+    )
 
-    fig = make_subplots()
+    fig.data = []
     fig.add_trace(trace1)
     fig.add_trace(trace2)
     plotly.offline.plot(fig)
@@ -72,14 +72,13 @@ Pstat = np.ones((2, 3))
 Pstat[:, 0] = [-330, 180]
 Pstat[:, 1] = [-280, 200]
 Pstat[:, 2] = [950, 1300]
-
 # compare_matlab_array(Pstat, "Pstat")
 
 Pstat2 = np.ones((2, 3))
 Pstat2[:, 0] = [-330, 180]
 Pstat2[:, 1] = [-145, 110]
 Pstat2[:, 2] = [950, 1300]
-compare_matlab_array(Pstat2, "Pstat2")
+# compare_matlab_array(Pstat2, "Pstat2")
 
 filename_prefix = 'pointcloud/master_2019OCT16_419pm'
 
@@ -99,6 +98,7 @@ Yhat = None
 displacement = None
 Inpthat = None
 Zhat_old = None
+fig = make_subplots()
 
 Fs = 30
 
@@ -169,5 +169,5 @@ for i in range(initPC, nFiles):
     ff += 1
     ff2 = ff2
     jj += 1
-    # plot_point_cloud(X, Y, Z, Xhat, Yhat, Zhat)
+    plot_point_cloud(X, Y, Z, Xhat, Yhat, Zhat, fig)
     print("PC ", jj)
