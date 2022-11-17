@@ -2,7 +2,7 @@ from pyntcloud import PyntCloud
 import copy
 import scipy.stats as stats
 import scipy
-from .linear_regression import *
+from .polynomial_regression import *
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 

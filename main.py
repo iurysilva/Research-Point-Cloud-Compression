@@ -19,5 +19,8 @@ n_files = 270
 init_pc = 40
 
 
-point_cloud_builder = PointCloudBuilder(pstat, pstat2, filename_prefix, avg_pc, n_acc, n_files, init_pc)
-point_cloud_builder.run()
+# point_cloud_builder = PointCloudBuilder(pstat, pstat2, filename_prefix, avg_pc, n_acc, n_files, init_pc)
+# point_cloud_builder.run()
+
+displacements = np.load("arrays/displacements.npy")
+print(displacements.shape)
