@@ -7,9 +7,11 @@ import matplotlib.pyplot as plt
 
 
 class PointCloudCompressor:
-    def __init__(self, time_serie, components_number):
+    def __init__(self, time_serie, x_hat, y_hat, components_number):
         self.components = None
         self.time_serie = time_serie
+        self.x_hat = x_hat
+        self.y_hat = y_hat
         self.components_number = components_number
         self.fps = 30
         self.number_of_frames = time_serie.shape[0]
@@ -43,16 +45,23 @@ class PointCloudCompressor:
         return mixture_matrix, unmixed
 
     def create_shapes_and_coordinates(self, eigen_vectors, mixture_matrix, sources):
+        print(eigen_vectors.shape)
         inverse_matrix = np.flip(np.linalg.inv(mixture_matrix), axis=0)
         mode_shapes = np.matmul(inverse_matrix, eigen_vectors[:, 0:self.components_number].T).T
         modal_coordinates = -sources
         return mode_shapes, modal_coordinates
 
+    def plot_shapes_and_coordinates(self, modal_coordinates, mode_shapes):
+        print(mode_shapes.shape)
+        fig2, axs2 = plt.subplots(2, self.components_number)
+        for column in range(self.components_number):
+            axs2[0][column].plot(self.time_axis, modal_coordinates[:, column], color="#069AF3")
+            # mode_shape = mode_shapes.reshape()
+            # axs2[1][column].scatter3D(mode_shapes[:, column])
+        plt.show()
+
     def run(self):
         eigen_vectors, eigen_values, components = self.apply_pca()
         mixture_matrix, sources = self.apply_blind_source_separation(components)
         mode_shapes, modal_coordinates = self.create_shapes_and_coordinates(eigen_vectors, mixture_matrix, sources)
-        fig2, axs2 = plt.subplots(2, self.components_number)
-        for column in range(self.components_number):
-            axs2[0][column].plot(self.time_axis, modal_coordinates[:, column], color="#069AF3")
-        plt.show()
+        self.plot_shapes_and_coordinates(modal_coordinates, mode_shapes)

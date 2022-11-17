@@ -19,12 +19,16 @@ n_acc = 90000
 n_files = 270
 init_pc = 40
 components_number = 3
+get_displacements = False
 
 
-# point_cloud_builder = PointCloudBuilder(pstat, pstat2, filename_prefix, avg_pc, n_acc, n_files, init_pc)
-# point_cloud_builder.run()
-
-displacements = np.load("arrays/displacements.npy")
-z_variation = displacements[:, 2, :]
-pointCloudCompressor = PointCloudCompressor(z_variation, components_number)
-pointCloudCompressor.run()
+if get_displacements:
+    point_cloud_builder = PointCloudBuilder(pstat, pstat2, filename_prefix, avg_pc, n_acc, n_files, init_pc)
+    point_cloud_builder.run()
+else:
+    displacements = np.load("arrays/displacements.npy")
+    x_hat = np.load("arrays/x_values.npy")
+    y_hat = np.load("arrays/y_value.npy")
+    z_variation = displacements[:, 2, :]
+    pointCloudCompressor = PointCloudCompressor(z_variation, x_hat, y_hat, components_number)
+    pointCloudCompressor.run()

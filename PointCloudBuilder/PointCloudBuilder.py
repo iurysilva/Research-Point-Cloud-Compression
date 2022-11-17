@@ -74,6 +74,10 @@ class PointCloudBuilder:
             self.x_hat = x[np.ravel(self.ss)]
             self.y_hat = y[np.ravel(self.ss)]
             color = np.array(point_cloud2.points)[:, 3:6]
+
+            print("Saving Xs and Ys values")
+            np.save('arrays/x_values', self.x_hat)
+            np.save('arrays/y_value', self.y_hat)
         else:
             fitted_parameters, p_cov = scipy.optimize.curve_fit(func, inpt, z)
 
@@ -101,7 +105,7 @@ class PointCloudBuilder:
         plt.savefig("plots/"+("img%d.jpg" % (self.iteration-40)))
         if self.iteration >= self.n_files:
             np.save('arrays/displacements', self.displacements)
-            return self.displacements
+            return self.x_hat, self.y_hat, self.displacements
         print("Point cloud %s finalized! \n" % self.jj)
 
     def run(self, animation_velocity=12000):
