@@ -19,11 +19,14 @@ class PointCloudCompressor:
 
     def apply_pca(self):
         print('Apllying PCA in the phase series')
+        print('Time serie shape', self.time_serie.shape)
         pca = PCA()
         eigen_vectors = pca.fit_transform(self.time_serie.T)
+        eigen_values = pca.singular_values_
+        components = pca.components_.T
         print("reduced matrix shape: ", pca.components_.shape)
         print("eigenvectors shape: ", eigen_vectors.shape, '\n')
-        return eigen_vectors.T, pca.singular_values_, pca.components_.T
+        return eigen_vectors, eigen_values, components
 
     def apply_blind_source_separation(self, pca_components):
         components = pca_components[:, 0:self.components_number]
@@ -46,12 +49,11 @@ class PointCloudCompressor:
 
     def create_shapes_and_coordinates(self, eigen_vectors, mixture_matrix, sources):
         inverse_matrix = np.flip(np.linalg.inv(mixture_matrix), axis=0)
-        mode_shapes = np.matmul(inverse_matrix, eigen_vectors[0:self.components_number, :]).T
+        mode_shapes = np.matmul(inverse_matrix, eigen_vectors[:, 0:self.components_number].T).T
         modal_coordinates = -sources
         return mode_shapes, modal_coordinates
 
     def plot_shapes_and_coordinates(self, modal_coordinates, mode_shapes):
-        print(mode_shapes.shape)
         fig = plt.figure(figsize=plt.figaspect(0.5))
         for column in range(self.components_number):
             ax = fig.add_subplot(2, 3, column + 1)
@@ -59,11 +61,16 @@ class PointCloudCompressor:
         for column in range(self.components_number):
             mode_shape = mode_shapes[:, column]
             ax = fig.add_subplot(2, 3, column + 4, projection='3d')
+            ax.set_zlim3d(bottom=-600, top=600)
+            ax.view_init(50, 270)
             ax.scatter3D(self.x_hat, self.y_hat, mode_shape)
         plt.show()
 
     def run(self):
         eigen_vectors, eigen_values, components = self.apply_pca()
+        print("Eigen vector size: ", eigen_vectors.shape)
         mixture_matrix, sources = self.apply_blind_source_separation(components)
         mode_shapes, modal_coordinates = self.create_shapes_and_coordinates(eigen_vectors, mixture_matrix, sources)
+        print(mode_shapes)
+        print("Mode shape size arriving plotting: ", mode_shapes.shape, "\n")
         self.plot_shapes_and_coordinates(modal_coordinates, mode_shapes)
