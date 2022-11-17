@@ -45,19 +45,21 @@ class PointCloudCompressor:
         return mixture_matrix, unmixed
 
     def create_shapes_and_coordinates(self, eigen_vectors, mixture_matrix, sources):
-        print(eigen_vectors.shape)
         inverse_matrix = np.flip(np.linalg.inv(mixture_matrix), axis=0)
-        mode_shapes = np.matmul(inverse_matrix, eigen_vectors[:, 0:self.components_number].T).T
+        mode_shapes = np.matmul(inverse_matrix, eigen_vectors[0:self.components_number, :]).T
         modal_coordinates = -sources
         return mode_shapes, modal_coordinates
 
     def plot_shapes_and_coordinates(self, modal_coordinates, mode_shapes):
         print(mode_shapes.shape)
-        fig2, axs2 = plt.subplots(2, self.components_number)
+        fig = plt.figure(figsize=plt.figaspect(0.5))
         for column in range(self.components_number):
-            axs2[0][column].plot(self.time_axis, modal_coordinates[:, column], color="#069AF3")
-            # mode_shape = mode_shapes.reshape()
-            # axs2[1][column].scatter3D(mode_shapes[:, column])
+            ax = fig.add_subplot(2, 3, column + 1)
+            ax.plot(self.time_axis, modal_coordinates[:, column], color="#069AF3")
+        for column in range(self.components_number):
+            mode_shape = mode_shapes[:, column]
+            ax = fig.add_subplot(2, 3, column + 4, projection='3d')
+            ax.scatter3D(self.x_hat, self.y_hat, mode_shape)
         plt.show()
 
     def run(self):
