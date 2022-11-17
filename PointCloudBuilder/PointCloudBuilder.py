@@ -100,7 +100,7 @@ class PointCloudBuilder:
         plt.savefig("plots/"+("img%d.jpg" % (self.iteration-40)))
         if self.iteration >= self.n_files:
             np.save('arrays/displacements', self.displacements)
-            self.anim.event_source.stop()
+            return self.displacements
         print("Point cloud %s finalized! \n" % self.jj)
 
     def run(self, animation_velocity=12000):
