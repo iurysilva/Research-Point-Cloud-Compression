@@ -1,0 +1,1 @@
+from PointCloudCompressor.PointCloudCompressor import PointCloudCompressor

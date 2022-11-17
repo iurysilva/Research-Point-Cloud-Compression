@@ -36,6 +36,7 @@ class PointCloudBuilder:
         point_cloud_name = self.filename_prefix + str(self.iteration) + '.ply'
         print("Reading point cloud %d: %s..." %(self.jj, point_cloud_name))
         point_cloud = PyntCloud.from_file(point_cloud_name)
+        print(point_cloud.points.shape)
         print("Copying point cloud...")
         point_cloud2 = copy.deepcopy(point_cloud)
 

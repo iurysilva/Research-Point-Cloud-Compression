@@ -1,5 +1,6 @@
 import numpy as np
 from PointCloudBuilder import PointCloudBuilder
+from PointCloudCompressor import PointCloudCompressor
 
 pstat = np.ones((2, 3))
 pstat[:, 0] = [-330, 180]
@@ -17,10 +18,13 @@ avg_pc = 95000
 n_acc = 90000
 n_files = 270
 init_pc = 40
+components_number = 3
 
 
 # point_cloud_builder = PointCloudBuilder(pstat, pstat2, filename_prefix, avg_pc, n_acc, n_files, init_pc)
 # point_cloud_builder.run()
 
 displacements = np.load("arrays/displacements.npy")
-print(displacements.shape)
+z_variation = displacements[:, 2, :]
+pointCloudCompressor = PointCloudCompressor(z_variation, components_number)
+pointCloudCompressor.run()
