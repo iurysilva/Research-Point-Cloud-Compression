@@ -4,6 +4,8 @@ import numpy as np
 from .complexity_pursuit_mask import return_mask
 from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
+import plotly.graph_objects as go
+import plotly
 
 
 class PointCloudCompressor:
@@ -62,9 +64,19 @@ class PointCloudCompressor:
             mode_shape = mode_shapes[:, column]
             ax = fig.add_subplot(2, 3, column + 4, projection='3d')
             ax.set_zlim3d(bottom=-600, top=600)
-            ax.view_init(50, 270)
             ax.scatter3D(self.x_hat, self.y_hat, mode_shape)
         plt.show()
+
+        mode_shape = mode_shapes[:, 0]
+
+        fig = go.Figure(data=[go.Scatter3d(x=self.x_hat, y=self.y_hat, z=mode_shape,
+                                           mode='markers')])
+        fig.update_layout(
+            scene=dict(
+                zaxis=dict(range=[-600, 600]),
+            )
+        )
+        plotly.offline.plot(fig)
 
     def run(self):
         eigen_vectors, eigen_values, components = self.apply_pca()
